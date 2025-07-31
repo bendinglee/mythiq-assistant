@@ -1,6 +1,6 @@
 """
-Mythiq Assistant Brain - Advanced Free AI System
-Professional-grade conversation engine with emotional intelligence
+Mythiq Assistant Brain - Railway Compatible Version
+Professional-grade conversation engine optimized for Railway deployment
 """
 import json
 import re
@@ -10,14 +10,8 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, asdict
 import logging
 
-# Free NLP libraries
+# Railway-safe NLP library
 from textblob import TextBlob
-try:
-    from fuzzywuzzy import fuzz
-except ImportError:
-    # Fallback if fuzzywuzzy not available
-    def fuzz_ratio(a, b):
-        return 50  # Default similarity
 
 logger = logging.getLogger(__name__)
 
@@ -56,12 +50,12 @@ class AIResponse:
         if self.suggested_actions is None:
             self.suggested_actions = []
 
-class AdvancedMythiqBrain:
-    """Advanced AI brain with emotional intelligence and memory"""
+class RailwayMythiqBrain:
+    """Railway-optimized AI brain with emotional intelligence"""
     
     def __init__(self):
-        """Initialize the advanced brain system"""
-        logger.info("Initializing Advanced Mythiq Brain...")
+        """Initialize the Railway-compatible brain system"""
+        logger.info("Initializing Railway-Compatible Mythiq Brain...")
         
         # Core personality traits
         self.personality = {
@@ -74,39 +68,43 @@ class AdvancedMythiqBrain:
         
         # Emotional intelligence patterns
         self.emotion_patterns = {
-            "excited": ["amazing", "awesome", "great", "love", "fantastic", "wonderful"],
-            "frustrated": ["stuck", "hard", "difficult", "can't", "impossible", "hate"],
-            "curious": ["how", "what", "why", "when", "where", "explain"],
-            "confident": ["will", "can", "definitely", "sure", "absolutely"],
-            "uncertain": ["maybe", "perhaps", "not sure", "don't know", "confused"],
-            "creative": ["idea", "create", "make", "build", "design", "imagine"]
+            "excited": ["amazing", "awesome", "great", "love", "fantastic", "wonderful", "yes", "perfect"],
+            "frustrated": ["stuck", "hard", "difficult", "can't", "impossible", "hate", "problem", "issue"],
+            "curious": ["how", "what", "why", "when", "where", "explain", "tell me", "show me"],
+            "confident": ["will", "can", "definitely", "sure", "absolutely", "certain"],
+            "uncertain": ["maybe", "perhaps", "not sure", "don't know", "confused", "unsure"],
+            "creative": ["idea", "create", "make", "build", "design", "imagine", "artistic"]
         }
         
-        # Intent recognition patterns
+        # Intent recognition patterns with scoring
         self.intent_patterns = {
             "game_request": {
-                "keywords": ["game", "play", "level", "character", "adventure", "puzzle", "platformer"],
-                "phrases": ["create a game", "make a game", "game idea", "game development"],
-                "confidence_boost": 0.2
+                "primary_keywords": ["game", "play", "level", "character", "adventure", "puzzle", "platformer"],
+                "secondary_keywords": ["gaming", "player", "gameplay", "mechanics", "story"],
+                "phrases": ["create a game", "make a game", "game idea", "game development", "build a game"],
+                "weight": 1.0
             },
             "media_request": {
-                "keywords": ["image", "video", "picture", "create", "generate", "media", "visual"],
-                "phrases": ["create an image", "make a video", "generate media"],
-                "confidence_boost": 0.2
+                "primary_keywords": ["image", "video", "picture", "create", "generate", "media", "visual"],
+                "secondary_keywords": ["art", "design", "graphics", "animation", "photo"],
+                "phrases": ["create an image", "make a video", "generate media", "visual content"],
+                "weight": 1.0
             },
             "help_request": {
-                "keywords": ["help", "assist", "support", "guide", "explain", "how"],
-                "phrases": ["can you help", "need help", "how do i", "please help"],
-                "confidence_boost": 0.1
+                "primary_keywords": ["help", "assist", "support", "guide", "explain", "how"],
+                "secondary_keywords": ["tutorial", "instruction", "advice", "guidance"],
+                "phrases": ["can you help", "need help", "how do i", "please help", "show me how"],
+                "weight": 0.8
             },
             "creative_brainstorm": {
-                "keywords": ["idea", "brainstorm", "creative", "inspiration", "concept"],
-                "phrases": ["need ideas", "brainstorm with me", "creative help"],
-                "confidence_boost": 0.15
+                "primary_keywords": ["idea", "brainstorm", "creative", "inspiration", "concept"],
+                "secondary_keywords": ["innovative", "original", "unique", "artistic"],
+                "phrases": ["need ideas", "brainstorm with me", "creative help", "inspire me"],
+                "weight": 0.9
             }
         }
         
-        # Response templates with personality
+        # Rich response templates with personality
         self.response_templates = {
             "greeting": {
                 "excited": [
@@ -159,7 +157,21 @@ class AdvancedMythiqBrain:
         # Context tracking
         self.active_contexts: Dict[str, ConversationContext] = {}
         
-        logger.info("Advanced Mythiq Brain initialized successfully!")
+        logger.info("Railway-Compatible Mythiq Brain initialized successfully!")
+
+    def simple_text_similarity(self, text1: str, text2: str) -> float:
+        """Simple but effective text similarity without external dependencies"""
+        words1 = set(text1.lower().split())
+        words2 = set(text2.lower().split())
+        
+        if not words1 and not words2:
+            return 1.0
+        if not words1 or not words2:
+            return 0.0
+            
+        intersection = words1.intersection(words2)
+        union = words1.union(words2)
+        return len(intersection) / len(union)
 
     def process_message(self, message: str, user_id: str = "default", session_id: str = None) -> AIResponse:
         """Process a message with advanced AI capabilities"""
@@ -213,9 +225,9 @@ class AdvancedMythiqBrain:
             )
 
     def _analyze_emotion(self, message: str) -> str:
-        """Analyze emotional content of message"""
+        """Analyze emotional content using TextBlob and patterns"""
         try:
-            # Use TextBlob for basic sentiment
+            # Use TextBlob for sentiment analysis
             blob = TextBlob(message)
             polarity = blob.sentiment.polarity
             
@@ -261,20 +273,24 @@ class AdvancedMythiqBrain:
         for intent, patterns in self.intent_patterns.items():
             score = 0
             
-            # Keyword matching
-            keyword_matches = sum(1 for keyword in patterns["keywords"] if keyword in message_lower)
-            score += keyword_matches * 0.3
+            # Primary keyword matching (higher weight)
+            primary_matches = sum(1 for keyword in patterns["primary_keywords"] if keyword in message_lower)
+            score += primary_matches * 0.4
             
-            # Phrase matching
+            # Secondary keyword matching
+            secondary_matches = sum(1 for keyword in patterns["secondary_keywords"] if keyword in message_lower)
+            score += secondary_matches * 0.2
+            
+            # Phrase matching (highest weight)
             phrase_matches = sum(1 for phrase in patterns["phrases"] if phrase in message_lower)
-            score += phrase_matches * 0.5
+            score += phrase_matches * 0.6
             
             # Context boost
             if intent == context.last_intent:
                 score += 0.1
             
-            # Confidence boost
-            score += patterns.get("confidence_boost", 0)
+            # Apply intent weight
+            score *= patterns.get("weight", 1.0)
             
             if score > 0:
                 intent_scores[intent] = score
@@ -328,12 +344,11 @@ class AdvancedMythiqBrain:
     def _generate_intelligent_default(self, message: str, context: ConversationContext, emotion: str) -> str:
         """Generate intelligent default responses"""
         
-        # Analyze message content for smart responses
         message_lower = message.lower()
         
         # Question responses
         if any(word in message_lower for word in ["what", "how", "why", "when", "where"]):
-            return f"That's a great question! I love how curious you are. {self._get_contextual_help(message, context)} What specific aspect would you like to explore deeper?"
+            return f"That's a great question! I love how curious you are. {self._get_contextual_help(context)} What specific aspect would you like to explore deeper?"
         
         # Sharing/telling responses  
         if any(word in message_lower for word in ["i think", "i believe", "i want", "i need"]):
@@ -352,11 +367,11 @@ class AdvancedMythiqBrain:
         
         return random.choice(responses)
 
-    def _get_contextual_help(self, message: str, context: ConversationContext) -> str:
+    def _get_contextual_help(self, context: ConversationContext) -> str:
         """Provide contextual help based on conversation history"""
-        if "game" in context.topics_discussed:
+        if "game_request" in context.topics_discussed:
             return "Based on our game discussions, I think I can provide some targeted insights."
-        elif "media" in context.topics_discussed:
+        elif "media_request" in context.topics_discussed:
             return "Given our media creation conversations, I have some specific ideas that might help."
         else:
             return "I'm here to help with whatever creative challenge you're facing."
@@ -407,32 +422,34 @@ class AdvancedMythiqBrain:
                 "creative_brainstorming",
                 "intent_recognition",
                 "personality_consistency"
-            ]
+            ],
+            "deployment": "railway_optimized"
         }
 
     def health_check(self) -> Dict[str, Any]:
-        """Advanced health check with detailed status"""
+        """Railway-optimized health check"""
         return {
             "status": "healthy",
-            "brain_type": "advanced_free_ai",
+            "brain_type": "railway_compatible_ai",
             "capabilities": {
                 "emotional_intelligence": True,
                 "context_awareness": True,
                 "intent_recognition": True,
                 "personality_system": True,
-                "memory_system": True,
-                "creative_assistance": True
+                "creative_assistance": True,
+                "railway_optimized": True
             },
             "active_sessions": len(self.active_contexts),
             "personality": self.personality["name"],
             "response_quality": "professional_grade",
             "cost": "free",
-            "reliability": "high"
+            "reliability": "high",
+            "deployment_platform": "railway"
         }
 
-# Test the advanced brain
+# Test the Railway-compatible brain
 if __name__ == "__main__":
-    brain = AdvancedMythiqBrain()
+    brain = RailwayMythiqBrain()
     
     test_messages = [
         ("Hello there!", "user1", "session1"),
@@ -442,7 +459,7 @@ if __name__ == "__main__":
         ("Can you help me with some creative ideas?", "user2", "session2")
     ]
     
-    print("🧠 Advanced Mythiq Brain Test Results:\n")
+    print("🧠 Railway-Compatible Mythiq Brain Test Results:\n")
     
     for message, user_id, session_id in test_messages:
         print(f"User: {message}")
@@ -456,4 +473,3 @@ if __name__ == "__main__":
     health = brain.health_check()
     for key, value in health.items():
         print(f"{key}: {value}")
-
