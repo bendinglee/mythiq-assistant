@@ -3,5 +3,3 @@ flask-cors==4.0.0
 python-dotenv==1.0.0
 requests==2.31.0
 textblob==0.17.1
-fuzzywuzzy==0.18.0
-python-levenshtein==0.21.1
