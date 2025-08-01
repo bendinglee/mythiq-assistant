@@ -1,106 +1,214 @@
+"""
+Updated app.py for Mythiq Assistant with Smart Lightweight Brain
+Railway-optimized Flask server with professional-grade AI
+"""
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import logging
 import os
-import json
-import random
+from datetime import datetime
 
+# Import the smart brain
+from brain_smart_lightweight import SmartLightweightBrain
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 
-# Simple AI responses
-responses = {
-    "greeting": [
-        "Hello! I'm your Mythiq Assistant. I can help with games, media, and chat!",
-        "Hi there! Ready to create something amazing together?",
-        "Welcome! I'm here to help with your creative projects!"
-    ],
-    "game": [
-        "I'd love to help you create a game! What genre interests you?",
-        "Great! Let's build an awesome game. What's your vision?",
-        "Game development time! What kind of game are you thinking?"
-    ],
-    "media": [
-        "I can help you create media! What would you like to make?",
-        "Perfect! Let's create something visual. Describe your idea!",
-        "Media creation is my specialty! What's your concept?"
-    ],
-    "default": [
-        "That's interesting! Tell me more about what you'd like to create.",
-        "I'm here to help! What can I assist you with today?",
-        "How can I help you bring your ideas to life?"
-    ]
-}
+# Initialize the smart brain
+logger.info("Initializing Smart Lightweight Brain...")
+brain = SmartLightweightBrain()
+logger.info("Smart Brain initialized successfully!")
 
-def get_response_type(message):
-    """Simple keyword-based routing"""
-    message_lower = message.lower()
-    
-    if any(word in message_lower for word in ["hello", "hi", "hey", "greetings"]):
-        return "greeting"
-    elif any(word in message_lower for word in ["game", "play", "level", "platformer", "puzzle"]):
-        return "game"
-    elif any(word in message_lower for word in ["image", "video", "create", "generate", "media"]):
-        return "media"
-    else:
-        return "default"
-
-@app.route('/health', methods=['GET'])
-def health():
+@app.route('/')
+def home():
+    """API information endpoint"""
     return jsonify({
-        "status": "healthy",
-        "service": "mythiq-assistant",
-        "version": "1.0.0",
-        "features": ["chat", "game_routing", "media_routing"]
+        "message": "Mythiq Assistant API - Smart Lightweight Edition",
+        "version": "2.0.0",
+        "brain_type": "smart_lightweight_professional",
+        "status": "running",
+        "endpoints": {
+            "chat": "/api/chat (POST)",
+            "health": "/health",
+            "brain_status": "/brain/status"
+        },
+        "capabilities": {
+            "emotional_intelligence": True,
+            "context_awareness": True,
+            "intent_classification": True,
+            "user_profiling": True,
+            "conversation_memory": True,
+            "professional_responses": True,
+            "railway_optimized": True
+        }
     })
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
+    """Smart chat endpoint with professional AI"""
     try:
         data = request.get_json()
-        message = data.get('message', '')
+        
+        if not data or 'message' not in data:
+            return jsonify({
+                'error': 'Message is required',
+                'status': 'error'
+            }), 400
+        
+        message = data.get('message', '').strip()
+        user_id = data.get('user_id', 'default')
+        session_id = data.get('session_id', None)
         
         if not message:
             return jsonify({
-                "response": "I didn't receive a message. How can I help you?",
-                "type": "error",
-                "confidence": 0.5,
-                "status": "error"
+                'error': 'Message cannot be empty',
+                'status': 'error'
             }), 400
         
-        # Get response type and generate response
-        response_type = get_response_type(message)
-        response_text = random.choice(responses[response_type])
+        logger.info(f"Processing message from user {user_id}: {message[:50]}...")
+        
+        # Process with smart brain
+        response = brain.process_message(message, user_id, session_id)
+        
+        logger.info(f"Generated response with intent: {response['intent']}, confidence: {response['confidence']:.2f}")
         
         return jsonify({
-            "response": response_text,
-            "type": response_type,
-            "confidence": 0.9,
-            "status": "success",
-            "original_message": message
+            'response': response['content'],
+            'intent': response['intent'],
+            'confidence': response['confidence'],
+            'emotion': response['emotion'],
+            'context': response['context'],
+            'metadata': response['metadata'],
+            'status': 'success'
         })
-    
+        
     except Exception as e:
+        logger.error(f"Error in chat endpoint: {e}")
         return jsonify({
-            "response": "I'm having some trouble, but I'm still here to help!",
-            "type": "error",
-            "confidence": 0.5,
-            "status": "error",
-            "error": str(e)
+            'response': "I'm experiencing a technical moment, but I'm still here and ready to help! Could you try rephrasing that?",
+            'intent': 'error',
+            'confidence': 0.5,
+            'emotion': {'primary': 'neutral', 'intensity': 0.5, 'confidence': 0.5},
+            'status': 'error',
+            'error': str(e)
         }), 500
 
-@app.route('/', methods=['GET'])
-def home():
+@app.route('/health')
+def health():
+    """Health check endpoint for Railway"""
+    try:
+        health_status = brain.health_check()
+        return jsonify(health_status)
+    except Exception as e:
+        logger.error(f"Health check error: {e}")
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@app.route('/brain/status')
+def brain_status():
+    """Detailed brain status and metrics"""
+    try:
+        status = brain.get_brain_status()
+        return jsonify(status)
+    except Exception as e:
+        logger.error(f"Brain status error: {e}")
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/conversation/history', methods=['GET'])
+def conversation_history():
+    """Get conversation history for a user"""
+    try:
+        user_id = request.args.get('user_id', 'default')
+        
+        # Get user profile with conversation history
+        profile = brain.context_manager.get_or_create_profile(user_id)
+        
+        return jsonify({
+            'user_id': user_id,
+            'conversation_count': profile.conversation_count,
+            'communication_style': profile.communication_style,
+            'preferred_topics': profile.preferred_topics,
+            'emotional_patterns': profile.emotional_patterns,
+            'last_interaction': profile.last_interaction.isoformat() if profile.last_interaction else None,
+            'status': 'success'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting conversation history: {e}")
+        return jsonify({
+            'error': str(e),
+            'status': 'error'
+        }), 500
+
+@app.route('/api/metrics')
+def metrics():
+    """API usage metrics"""
+    try:
+        return jsonify({
+            'brain_metrics': brain.metrics,
+            'active_users': len(brain.context_manager.user_profiles),
+            'active_sessions': len(brain.context_manager.active_contexts),
+            'timestamp': datetime.now().isoformat(),
+            'status': 'success'
+        })
+    except Exception as e:
+        logger.error(f"Error getting metrics: {e}")
+        return jsonify({
+            'error': str(e),
+            'status': 'error'
+        }), 500
+
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors"""
     return jsonify({
-        "message": "Mythiq Assistant API",
-        "version": "1.0.0",
-        "endpoints": {
-            "health": "/health",
-            "chat": "/api/chat (POST)"
-        },
-        "status": "running"
-    })
+        'error': 'Endpoint not found',
+        'message': 'The requested endpoint does not exist',
+        'available_endpoints': [
+            '/',
+            '/api/chat',
+            '/health',
+            '/brain/status',
+            '/api/conversation/history',
+            '/api/metrics'
+        ],
+        'status': 'error'
+    }), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle 500 errors"""
+    logger.error(f"Internal server error: {error}")
+    return jsonify({
+        'error': 'Internal server error',
+        'message': 'Something went wrong on our end',
+        'status': 'error'
+    }), 500
 
 if __name__ == '__main__':
+    # Get port from environment (Railway sets this)
     port = int(os.environ.get('PORT', 5001))
-    print(f"Starting Mythiq Assistant on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=False)
+    
+    logger.info(f"Starting Mythiq Assistant with Smart Lightweight Brain on port {port}")
+    logger.info("Brain capabilities: Emotional Intelligence, Context Awareness, Intent Classification")
+    logger.info("Deployment: Railway-optimized, Ultra-lightweight, Professional-grade")
+    
+    # Run the app
+    app.run(
+        host='0.0.0.0',
+        port=port,
+        debug=False  # Set to False for production
+    )
