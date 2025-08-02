@@ -11,7 +11,7 @@ def home():
         "service": "Mythiq Assistant",
         "status": "online",
         "version": "1.0.0",
-        "message": "Ultra-simple version - guaranteed to work!"
+        "message": "Working perfectly! Ready for AI conversations."
     })
 
 @app.route('/health', methods=['GET'])
